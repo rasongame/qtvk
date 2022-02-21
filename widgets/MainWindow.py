@@ -33,6 +33,7 @@ class MainWindow(QMainWindow):
                 name = group['name']
                 return name
 
+    @pyqtSlot(int)
     def chat_list_on_clicked(self, peer_id: int):
         print("mainwindow switch_chat")
         self.current_chat_id = peer_id
@@ -105,14 +106,16 @@ class MainWindow(QMainWindow):
                 chat_settings = conversation["chat_settings"]
                 title = chat_settings['title']
                 self.loaded_chat_titles[peer['id']] = title
-                item = ChatListItem(title, communicate=self.c)
+                conversation_message_id = conversation['last_conversation_message_id']
+                last_message = self.vk.messages.getByConversationMessageId(peer_id=peer['id'], conversation_message_ids=conversation_message_id)['items'][0]
+                item = ChatListItem(title, last_message['text'], communicate=self.c)
                 item.setPeerID(peer['id'])
                 self.chat_list.addWidget(item)
 
         users = self.vk.users.get(user_ids=user_ids)
         for user in users:
             name = utils.build_username(user)
-            item = ChatListItem(name, self.c)
+            item = ChatListItem(name, "", self.c)
             item.setPeerID(user['id'])
             self.loaded_chat_titles[user['id']] = name
             self.chat_list.addWidget(item)
@@ -128,9 +131,7 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot(str)
     def init_logic(self, token):
-        self.current_chat_id = 0
-        self.current_chat_users = {}
-        self.loaded_chat_titles: dict = {}
+
         self.token = token
         self.vk_session = vk_api.VkApi(token=self.token)
         self.vk = self.vk_session.get_api()
@@ -146,6 +147,9 @@ class MainWindow(QMainWindow):
     def __init__(self, communicate=Communicate()):
         super(MainWindow, self).__init__()
         self.c = communicate
+        self.current_chat_id = 0
+        self.current_chat_users = {}
+        self.loaded_chat_titles: dict = {}
         uic.loadUi("kicker.ui", self)
         self.username_label: QLabel = self.findChild(QLabel, "label")
         self.send_button: QPushButton = self.findChild(QPushButton, "sendButton")
