@@ -14,6 +14,13 @@ class ChatListItem(QWidget):
         self.c = communicate
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.label)
+        stylesheet = \
+        """
+        QWidget::hover {
+            background-color: lightgreen;
+        }
+        """
+        self.setStyleSheet(stylesheet)
         self.setLayout(self.layout)
 
     def mouseReleaseEvent(self, a0: QtGui.QMouseEvent) -> None:
